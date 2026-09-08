@@ -9,6 +9,24 @@ import (
 	"github.com/sarnas-it/guardrail/internal/rules"
 )
 
+func TestWriteJSONNoFindingsEmitsEmptyFindings(t *testing.T) {
+	var buf bytes.Buffer
+	if err := WriteJSON(&buf, nil, false); err != nil {
+		t.Fatal(err)
+	}
+	var doc map[string]interface{}
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatal(err)
+	}
+	findings, ok := doc["findings"].([]interface{})
+	if !ok {
+		t.Fatal("findings must be an array")
+	}
+	if findings == nil || len(findings) != 0 {
+		t.Fatalf("expected empty findings array, got %#v", doc["findings"])
+	}
+}
+
 func TestWriteJSON(t *testing.T) {
 	fs := []engine.Finding{
 		{RuleID: "aws_access_key", Category: rules.CategorySecret, Severity: rules.SeverityBlock, File: "a.txt", Line: 3, Value: "AKIAIOSFODNN7EXAMPLE", Fingerprint: "fp"},

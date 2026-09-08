@@ -23,7 +23,7 @@ type jsonDoc struct {
 }
 
 func WriteJSON(w io.Writer, findings []engine.Finding, reveal bool) error {
-	doc := jsonDoc{}
+	doc := jsonDoc{Findings: []jsonFinding{}}
 	for _, f := range findings {
 		val := f.Value
 		if !reveal {

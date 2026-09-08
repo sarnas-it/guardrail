@@ -10,6 +10,32 @@ import (
 	"github.com/sarnas-it/guardrail/internal/rules"
 )
 
+func TestWriteSARIFNoFindingsEmitsEmptyResults(t *testing.T) {
+	rs, err := rules.LoadDefault()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, nil, rs, false); err != nil {
+		t.Fatal(err)
+	}
+	var doc map[string]interface{}
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatal(err)
+	}
+	runs := doc["runs"].([]interface{})
+	if len(runs) != 1 {
+		t.Fatalf("expected 1 run, got %d", len(runs))
+	}
+	results, ok := runs[0].(map[string]interface{})["results"].([]interface{})
+	if !ok {
+		t.Fatal("run.results must be an array")
+	}
+	if results == nil || len(results) != 0 {
+		t.Fatalf("expected empty results array, got %#v", runs[0].(map[string]interface{})["results"])
+	}
+}
+
 func TestWriteSARIFStructure(t *testing.T) {
 	rs, err := rules.LoadDefault()
 	if err != nil {

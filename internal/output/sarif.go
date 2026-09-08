@@ -74,7 +74,7 @@ func WriteSARIF(w io.Writer, findings []engine.Finding, rs *rules.RuleSet, revea
 	doc := sarifDoc{
 		Version: "2.1.0",
 		Schema:  "https://json.schemastore.org/sarif-2.1.0.json",
-		Runs:    []sarifRun{{Tool: buildTool(rs)}},
+		Runs:    []sarifRun{{Tool: buildTool(rs), Results: []sarifResult{}}},
 	}
 	for _, f := range findings {
 		level := "warning"
