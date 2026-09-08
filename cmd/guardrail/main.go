@@ -12,6 +12,15 @@ func main() {
 	os.Exit(run(os.Args[1:]))
 }
 
+// defaultConfigPath returns the default for --config: INPUT_CONFIG (container
+// action input) wins when set, otherwise a repo-root guardrail.yml is assumed.
+func defaultConfigPath(inputConfig string) string {
+	if inputConfig != "" {
+		return inputConfig
+	}
+	return "guardrail.yml"
+}
+
 func run(args []string) int {
 	if len(args) == 0 {
 		usage()
@@ -35,7 +44,7 @@ func runScan(args []string) int {
 	var (
 		base       = fs.String("base", "", "base commit SHA")
 		head       = fs.String("head", "", "head commit SHA")
-		configPath = fs.String("config", "guardrail.yml", "path to guardrail.yml")
+		configPath = fs.String("config", defaultConfigPath(os.Getenv("INPUT_CONFIG")), "path to guardrail.yml")
 		sarifFile  = fs.String("sarif", "", "write SARIF report to file")
 		jsonFile   = fs.String("json", "", "write JSON report to file")
 		reveal     = fs.Bool("reveal", false, "print full values")
@@ -54,7 +63,6 @@ func runScan(args []string) int {
 	}
 	*base = flagOrEnv(*base, "INPUT_BASE")
 	*head = flagOrEnv(*head, "INPUT_HEAD")
-	*configPath = flagOrEnv(*configPath, "INPUT_CONFIG")
 	*sarifFile = flagOrEnv(*sarifFile, "INPUT_SARIF_FILE")
 
 	if os.Getenv("GUARDRAIL_REVEAL") == "1" {
