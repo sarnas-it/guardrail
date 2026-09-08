@@ -3,8 +3,10 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/sarnas-it/guardrail/internal/rules"
 	"gopkg.in/yaml.v3"
@@ -62,6 +64,10 @@ func Load(path string, rs *rules.RuleSet) (*Config, error) {
 	dec := yaml.NewDecoder(strings.NewReader(string(data)))
 	dec.KnownFields(true)
 	if err := dec.Decode(cfg); err != nil {
+		if errors.Is(err, io.EOF) {
+			// Пустой или только-комментарный конфиг — дефолт, не ошибка.
+			return Default(), nil
+		}
 		return nil, fmt.Errorf("parse %s: %w", path, err)
 	}
 	return validate(cfg, rs)
@@ -86,6 +92,11 @@ func validate(cfg *Config, rs *rules.RuleSet) (*Config, error) {
 		}
 		if _, ok := rs.Get(m.Rule); !ok {
 			return nil, fmt.Errorf("unknown rule id %q in ignore.matches", m.Rule)
+		}
+		if m.Until != "" {
+			if _, err := time.Parse("2006-01-02", m.Until); err != nil {
+				return nil, fmt.Errorf("ignore.matches.until %q must be a date in YYYY-MM-DD format", m.Until)
+			}
 		}
 	}
 	return cfg, nil

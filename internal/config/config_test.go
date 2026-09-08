@@ -54,6 +54,64 @@ func TestLoadBadSeverityValueFails(t *testing.T) {
 	}
 }
 
+func TestLoadInvalidUntilDateFails(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "guardrail.yml")
+	content := `
+ignore:
+  matches:
+    - rule: aws_access_key
+      until: "2026-13-99"
+      reason: "rotating"
+`
+	os.WriteFile(path, []byte(content), 0o644)
+	if _, err := Load(path, rs(t)); err == nil {
+		t.Fatal("expected error for invalid until date")
+	}
+}
+
+func TestLoadValidUntilDateOK(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "guardrail.yml")
+	content := `
+ignore:
+  matches:
+    - rule: aws_access_key
+      until: "2026-12-31"
+      reason: "rotating"
+`
+	os.WriteFile(path, []byte(content), 0o644)
+	if _, err := Load(path, rs(t)); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestLoadEmptyFileReturnsDefault(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "guardrail.yml")
+	os.WriteFile(path, []byte(""), 0o644)
+	c, err := Load(path, rs(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c == nil || c.Severity == nil {
+		t.Fatal("expected non-nil default config for empty file")
+	}
+}
+
+func TestLoadCommentsOnlyReturnsDefault(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "guardrail.yml")
+	os.WriteFile(path, []byte("# scaffold\n# enable guardrail later\n"), 0o644)
+	c, err := Load(path, rs(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c == nil || c.Severity == nil {
+		t.Fatal("expected non-nil default config for comments-only file")
+	}
+}
+
 func TestLoadValid(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "guardrail.yml")
