@@ -9,6 +9,10 @@ import (
 
 const EmptyTree = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
+// zeroSHA — sentinel от GitHub Actions: github.event.before равен 40 нулям
+// при первой push-ветки (нет предка). Сканировать его надо как пустое дерево.
+const zeroSHA = "0000000000000000000000000000000000000000"
+
 type Runner struct{ Dir string }
 
 func New(dir string) *Runner { return &Runner{Dir: dir} }
@@ -34,10 +38,13 @@ func (r *Runner) AddedLines(base, head string) ([]AddedLine, error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseDiffHunks(diff), nil
+	return parseDiffHunks(diff)
 }
 
 func (r *Runner) threeDotOrTwoDotDiff(base, head string) ([]byte, error) {
+	if base == zeroSHA {
+		base = EmptyTree
+	}
 	if base == EmptyTree {
 		// Материализуем пустое дерево в объектной БД (hash-object без -w не хранит).
 		if _, err := r.run("hash-object", "-w", "-t", "tree", "/dev/null"); err != nil {

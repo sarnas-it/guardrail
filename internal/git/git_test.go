@@ -61,6 +61,35 @@ func TestAddedLines(t *testing.T) {
 	}
 }
 
+func TestAddedLinesAllZerosBaseTreatedAsEmptyTree(t *testing.T) {
+	dir := t.TempDir()
+	gitCmd(t, dir, "init", "-q")
+	gitCmd(t, dir, "config", "user.email", "t@example.com")
+	gitCmd(t, dir, "config", "user.name", "Test")
+	gitCmd(t, dir, "config", "commit.gpgsign", "false")
+	if err := os.WriteFile(filepath.Join(dir, "config.yml"), []byte("token: AKIAIOSFODNN7EXAMPLE\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	gitCmd(t, dir, "add", ".")
+	gitCmd(t, dir, "commit", "-qm", "root")
+	head := strings.TrimSpace(gitCmd(t, dir, "rev-parse", "HEAD"))
+
+	r := New(dir)
+	lines, err := r.AddedLines("0000000000000000000000000000000000000000", head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(lines) != 1 {
+		t.Fatalf("expected 1 added line for root commit, got %d: %+v", len(lines), lines)
+	}
+	if lines[0].Path != "config.yml" || lines[0].Line != 1 {
+		t.Fatalf("bad added line: %+v", lines[0])
+	}
+	if !strings.Contains(lines[0].Text, "AKIAIOSFODNN7EXAMPLE") {
+		t.Fatalf("root-commit secret missing from added line: %q", lines[0].Text)
+	}
+}
+
 func TestBlobSizeAndRevExists(t *testing.T) {
 	dir := makeRepo(t)
 	r := New(dir)
