@@ -3,9 +3,18 @@ package git
 import (
 	"bufio"
 	"bytes"
+	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
+
+// maxDiffLineBytes — максимальная длина одной строки диффа. Строка длиннее
+// сигнализирует об ошибке (errLineTooLong), а не молча отбрасывается: для
+// сканера секретов потерянная добавленная строка — пропущенная утечка.
+const maxDiffLineBytes = 1024 * 1024
+
+var errLineTooLong = errors.New("diff line exceeds scanner limit; refusing to silently drop it")
 
 type AddedLine struct {
 	Path string
@@ -15,10 +24,10 @@ type AddedLine struct {
 
 // parseDiffHunks разбирает unified-дифф (git diff -U0 --no-color base head)
 // и возвращает добавленные строки с номерами строк в новой версии файла.
-func parseDiffHunks(diff []byte) []AddedLine {
+func parseDiffHunks(diff []byte) ([]AddedLine, error) {
 	var out []AddedLine
 	sc := bufio.NewScanner(bytes.NewReader(diff))
-	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
+	sc.Buffer(make([]byte, maxDiffLineBytes), maxDiffLineBytes)
 
 	var path string
 	var newLine int
@@ -53,7 +62,13 @@ func parseDiffHunks(diff []byte) []AddedLine {
 			}
 		}
 	}
-	return out
+	if err := sc.Err(); err != nil {
+		if errors.Is(err, bufio.ErrTooLong) {
+			return nil, errLineTooLong
+		}
+		return nil, fmt.Errorf("scan diff: %w", err)
+	}
+	return out, nil
 }
 
 func parseNewPath(header string) string {
