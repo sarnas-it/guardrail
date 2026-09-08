@@ -80,6 +80,14 @@ func (r *Runner) RevExists(rev string) bool {
 	return err == nil
 }
 
+func (r *Runner) RevParse(rev string) (string, error) {
+	out, err := r.run("rev-parse", rev)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
 // ParentOrEmpty возвращает родителя head, либо EmptyTree для корневого коммита.
 func (r *Runner) ParentOrEmpty(head string) (string, error) {
 	out, err := r.run("rev-parse", "--verify", "--quiet", head+"^")
