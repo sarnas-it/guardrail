@@ -1,0 +1,13 @@
+severity:
+  # aws_access_key: warn
+ignore:
+  paths:
+    - "testdata/**"
+  matches:
+    - rule: phone_ru
+      path: "internal/tests/fixtures.go"
+      reason: "test fixtures"
+scan:
+  max_file_size_kb: 512
+output:
+  sarif_file: guardrail.sarif
