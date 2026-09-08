@@ -11,3 +11,4 @@ RUN git config --system --add safe.directory /github/workspace
 COPY --from=build /out/guardrail /usr/local/bin/guardrail
 WORKDIR /github/workspace
 ENTRYPOINT ["/usr/local/bin/guardrail"]
+CMD ["scan"]
