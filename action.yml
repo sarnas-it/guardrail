@@ -1,0 +1,29 @@
+name: 'Guardrail'
+description: 'Scan PR/push diff for leaked secrets and Russian personal data'
+author: 'Sarnas'
+branding:
+  icon: 'shield'
+  color: 'red'
+inputs:
+  base:
+    description: 'Base commit SHA to diff against. Defaults to parent of head.'
+    required: false
+    default: ''
+  head:
+    description: 'Head commit SHA. Defaults to current commit.'
+    required: false
+    default: ''
+  config:
+    description: 'Path to guardrail.yml relative to repo root.'
+    required: false
+    default: 'guardrail.yml'
+  sarif_file:
+    description: 'Write SARIF report to this path.'
+    required: false
+    default: ''
+outputs: {}
+runs:
+  using: 'docker'
+  image: 'docker://ghcr.io/sarnas-it/guardrail:v0.1.0'
+  args:
+    - scan

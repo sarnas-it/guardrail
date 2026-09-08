@@ -1,0 +1,5 @@
+.git
+guardrail
+docs
+*.sarif
+internal/**/*_test.go
