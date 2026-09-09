@@ -19,11 +19,19 @@ const (
 	SeverityWarn  Severity = "warn"
 )
 
+type RuleType string
+
+const (
+	RuleTypeRegex      RuleType = "regex"
+	RuleTypeDictionary RuleType = "dictionary"
+)
+
 type Rule struct {
 	ID          string
 	Category    Category
 	Severity    Severity
 	Description string
+	Type        RuleType
 	Keywords    []string
 	EntropyMin  float64
 	Regex       *regexp.Regexp
@@ -35,6 +43,7 @@ type fileRule struct {
 	Category    Category `yaml:"category"`
 	Severity    Severity `yaml:"severity"`
 	Description string   `yaml:"description"`
+	Type        string   `yaml:"type"` // "regex" (default) | "dictionary"
 	Regex       string   `yaml:"regex"`
 	Keywords    []string `yaml:"keywords"`
 	EntropyMin  float64  `yaml:"entropy_min"`

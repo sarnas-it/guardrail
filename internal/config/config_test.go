@@ -112,6 +112,49 @@ func TestLoadCommentsOnlyReturnsDefault(t *testing.T) {
 	}
 }
 
+func TestLoadValidNamesSection(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "guardrail.yml")
+	content := `
+names:
+  min_matches: 3
+  window: 5
+  surnames_file: data/surnames.txt
+  given_names_file: data/given.txt
+  patronymics_file: data/patronymics.txt
+  exclusions_file: data/exclusions.txt
+`
+	os.WriteFile(path, []byte(content), 0o644)
+	c, err := Load(path, rs(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Names.MinMatches != 3 || c.Names.Window != 5 {
+		t.Fatalf("bad names cfg: %+v", c.Names)
+	}
+	if c.Names.SurnamesFile != "data/surnames.txt" {
+		t.Fatal("surnames_file not parsed")
+	}
+}
+
+func TestLoadNamesBadMinMatches(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "guardrail.yml")
+	os.WriteFile(path, []byte("names:\n  min_matches: 1\n"), 0o644)
+	if _, err := Load(path, rs(t)); err == nil {
+		t.Fatal("expected error for min_matches 1")
+	}
+}
+
+func TestLoadNamesUnknownKey(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "guardrail.yml")
+	os.WriteFile(path, []byte("names:\n  full_names_file: x.txt\n"), 0o644)
+	if _, err := Load(path, rs(t)); err == nil {
+		t.Fatal("expected error for unknown names key")
+	}
+}
+
 func TestLoadValid(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "guardrail.yml")

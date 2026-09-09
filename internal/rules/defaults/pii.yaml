@@ -30,3 +30,9 @@ rules:
     description: Russian passport series and number
     regex: '\b\d{2}\s?\d{2}\s?\d{6}\b'
     keywords: [паспорт, passport, серия, паспортные]
+
+  - id: full_name_ru
+    category: pii
+    severity: warn
+    description: Russian full name (surname + given name + patronymic)
+    type: dictionary

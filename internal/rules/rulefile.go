@@ -67,12 +67,27 @@ func (rs *RuleSet) parseYAML(file string, data []byte) error {
 		if fr.Severity != SeverityBlock && fr.Severity != SeverityWarn {
 			return fmt.Errorf("%s: rule %q: bad severity %q", file, fr.ID, fr.Severity)
 		}
-		if fr.Regex == "" {
+		rtype := RuleType(fr.Type)
+		if rtype == "" {
+			rtype = RuleTypeRegex
+		}
+		if rtype != RuleTypeRegex && rtype != RuleTypeDictionary {
+			return fmt.Errorf("%s: rule %q: bad type %q", file, fr.ID, fr.Type)
+		}
+		if rtype == RuleTypeDictionary {
+			if fr.Regex != "" || len(fr.Keywords) > 0 || fr.EntropyMin > 0 {
+				return fmt.Errorf("%s: rule %q: dictionary rule must not set regex/keywords/entropy_min", file, fr.ID)
+			}
+		} else if fr.Regex == "" {
 			return fmt.Errorf("%s: rule %q: missing regex", file, fr.ID)
 		}
-		re, err := regexp.Compile(fr.Regex)
-		if err != nil {
-			return fmt.Errorf("%s: rule %q: bad regex: %w", file, fr.ID, err)
+		var re *regexp.Regexp
+		if rtype == RuleTypeRegex {
+			compiled, err := regexp.Compile(fr.Regex)
+			if err != nil {
+				return fmt.Errorf("%s: rule %q: bad regex: %w", file, fr.ID, err)
+			}
+			re = compiled
 		}
 		if _, dup := rs.byID[fr.ID]; dup {
 			return fmt.Errorf("%s: duplicate rule id %q", file, fr.ID)
@@ -82,6 +97,7 @@ func (rs *RuleSet) parseYAML(file string, data []byte) error {
 			Category:    fr.Category,
 			Severity:    fr.Severity,
 			Description: fr.Description,
+			Type:        rtype,
 			Keywords:    fr.Keywords,
 			EntropyMin:  fr.EntropyMin,
 			Regex:       re,

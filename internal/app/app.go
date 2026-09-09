@@ -8,6 +8,7 @@ import (
 	"github.com/sarnas-it/guardrail/internal/config"
 	"github.com/sarnas-it/guardrail/internal/engine"
 	"github.com/sarnas-it/guardrail/internal/git"
+	"github.com/sarnas-it/guardrail/internal/names"
 	"github.com/sarnas-it/guardrail/internal/output"
 	"github.com/sarnas-it/guardrail/internal/rules"
 )
@@ -40,8 +41,21 @@ func Run(repoDir, base, head, configPath, sarifFile, jsonFile string, reveal boo
 	}
 
 	cfg := config.Default()
+	cfgDir := "."
 	if configPath != "" {
+		cfgDir = filepath.Dir(abs(configPath))
 		cfg, err = config.Load(abs(configPath), rs)
+		if err != nil {
+			return 2, err
+		}
+	}
+
+	var ns *names.Set
+	if cfg.Names.SurnamesFile != "" || cfg.Names.GivenNamesFile != "" || cfg.Names.PatronymicsFile != "" {
+		ns, err = names.Load(cfgDir,
+			cfg.Names.SurnamesFile, cfg.Names.GivenNamesFile,
+			cfg.Names.PatronymicsFile, cfg.Names.ExclusionsFile,
+			cfg.Names.MinMatches, cfg.Names.Window)
 		if err != nil {
 			return 2, err
 		}
@@ -54,6 +68,7 @@ func Run(repoDir, base, head, configPath, sarifFile, jsonFile string, reveal boo
 		Cfg:     cfg,
 		RS:      rs,
 		Runner:  runner,
+		Names:   ns,
 	})
 	if err != nil {
 		return 2, err
