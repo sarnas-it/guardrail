@@ -6,6 +6,7 @@ import (
 	"github.com/sarnas-it/guardrail/internal/config"
 	"github.com/sarnas-it/guardrail/internal/detect"
 	"github.com/sarnas-it/guardrail/internal/git"
+	"github.com/sarnas-it/guardrail/internal/names"
 	"github.com/sarnas-it/guardrail/internal/rules"
 )
 
@@ -27,6 +28,7 @@ type Options struct {
 	Cfg     *config.Config
 	RS      *rules.RuleSet
 	Runner  *git.Runner
+	Names   *names.Set
 }
 
 type Result struct {
@@ -69,8 +71,17 @@ func Scan(opts Options) (*Result, error) {
 
 	seen := map[string]bool{}
 	var res Result
+	var fullNameRule *rules.Rule
+	if opts.RS != nil {
+		if r, ok := opts.RS.Get("full_name_ru"); ok && r.Type == rules.RuleTypeDictionary {
+			fullNameRule = r
+		}
+	}
 	for _, l := range filtered {
 		ms := detect.Line(opts.RS, l.Text)
+		if fullNameRule != nil && opts.Names != nil {
+			ms = append(ms, detect.FullName(l.Text, opts.Names, fullNameRule)...)
+		}
 		for _, m := range ms {
 			sev := effectiveSeverity(cfg, m.Rule)
 			if sev == "" {

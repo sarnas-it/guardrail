@@ -78,6 +78,37 @@ func TestRunReturns2OnBrokenConfig(t *testing.T) {
 	}
 }
 
+func TestRunLoadsNamesFromConfigDir(t *testing.T) {
+	dir := t.TempDir()
+	gitCmd(t, dir, "init", "-q")
+	gitCmd(t, dir, "config", "user.email", "t@example.com")
+	gitCmd(t, dir, "config", "user.name", "Test")
+	gitCmd(t, dir, "config", "commit.gpgsign", "false")
+	os.WriteFile(filepath.Join(dir, "a.txt"), []byte("ok\n"), 0o644)
+	gitCmd(t, dir, "add", ".")
+	gitCmd(t, dir, "commit", "-qm", "base")
+
+	// словари в подпапке data рядом с guardrail.yml
+	dataDir := filepath.Join(dir, "data")
+	os.MkdirAll(dataDir, 0o755)
+	os.WriteFile(filepath.Join(dataDir, "surnames.txt"), []byte("иванов\n"), 0o644)
+	os.WriteFile(filepath.Join(dataDir, "given.txt"), []byte("иван\n"), 0o644)
+	os.WriteFile(filepath.Join(dataDir, "patronymics.txt"), []byte("иванович\n"), 0o644)
+	cfg := "severity: {}\nignore: {}\nnames:\n  surnames_file: data/surnames.txt\n  given_names_file: data/given.txt\n  patronymics_file: data/patronymics.txt\n"
+	os.WriteFile(filepath.Join(dir, "guardrail.yml"), []byte(cfg), 0o644)
+	os.WriteFile(filepath.Join(dir, "a.txt"), []byte("ok\nname = Иванов Иван Иванович\n"), 0o644)
+	gitCmd(t, dir, "add", ".")
+	gitCmd(t, dir, "commit", "-qm", "person")
+
+	code, err := Run(dir, "", "", filepath.Join(dir, "guardrail.yml"), "", "", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if code != 0 {
+		t.Fatalf("expected exit 0 (ФИО — warn), got %d", code)
+	}
+}
+
 func TestRunWritesSarif(t *testing.T) {
 	dir := leakRepo(t)
 	sarif := filepath.Join(dir, "out.sarif")

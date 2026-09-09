@@ -9,6 +9,7 @@ import (
 
 	"github.com/sarnas-it/guardrail/internal/config"
 	"github.com/sarnas-it/guardrail/internal/git"
+	"github.com/sarnas-it/guardrail/internal/names"
 	"github.com/sarnas-it/guardrail/internal/rules"
 )
 
@@ -150,6 +151,78 @@ func TestScanSeverityOverrideToWarnAndAllowlist(t *testing.T) {
 	}
 	if res.Allowed != 1 {
 		t.Fatalf("expected 1 allowed finding, got %d", res.Allowed)
+	}
+}
+
+func writeDicts(t *testing.T, files map[string]string) string {
+	t.Helper()
+	dir := t.TempDir()
+	for name, content := range files {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return dir
+}
+
+func TestScanFindsFullNameWhenNamesConfigured(t *testing.T) {
+	dir, base, head := makeScanRepo(t)
+	// допишем в тот же репо строку с ФИО
+	if err := os.WriteFile(filepath.Join(dir, "person.txt"), []byte("name = Иванов Иван Иванович\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	gitCmd(t, dir, "add", ".")
+	gitCmd(t, dir, "commit", "-qm", "person")
+	head = strings.TrimSpace(gitCmd(t, dir, "rev-parse", "HEAD"))
+
+	rs, err := rules.LoadDefault()
+	if err != nil {
+		t.Fatal(err)
+	}
+	ndir := writeDicts(t, map[string]string{
+		"surnames.txt":    "иванов\n",
+		"given.txt":       "иван\n",
+		"patronymics.txt": "иванович\n",
+	})
+	ns, err := names.Load(ndir, "surnames.txt", "given.txt", "patronymics.txt", "", 2, 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := Scan(Options{RepoDir: dir, Base: base, Head: head, Cfg: config.Default(), RS: rs, Names: ns})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var found bool
+	for _, f := range res.Findings {
+		if f.RuleID == "full_name_ru" && f.File == "person.txt" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected full_name_ru finding, got %+v", res.Findings)
+	}
+}
+
+func TestScanNoFullNameWithoutNames(t *testing.T) {
+	dir, base, head := makeScanRepo(t)
+	if err := os.WriteFile(filepath.Join(dir, "person.txt"), []byte("name = Иванов Иван Иванович\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	gitCmd(t, dir, "add", ".")
+	gitCmd(t, dir, "commit", "-qm", "person")
+	head = strings.TrimSpace(gitCmd(t, dir, "rev-parse", "HEAD"))
+	rs, err := rules.LoadDefault()
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := Scan(Options{RepoDir: dir, Base: base, Head: head, Cfg: config.Default(), RS: rs})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range res.Findings {
+		if f.RuleID == "full_name_ru" {
+			t.Fatalf("full_name_ru must not fire without names.Set, got %+v", f)
+		}
 	}
 }
 
