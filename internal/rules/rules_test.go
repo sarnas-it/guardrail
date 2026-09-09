@@ -18,6 +18,12 @@ func TestRuleSetGetAndRules(t *testing.T) {
 	}
 }
 
+func TestRuleTypesConstants(t *testing.T) {
+	if RuleTypeRegex != "regex" || RuleTypeDictionary != "dictionary" {
+		t.Fatal("rule type constants mismatch")
+	}
+}
+
 func TestValidateIDs(t *testing.T) {
 	rs := &RuleSet{byID: map[string]*Rule{"a": {ID: "a"}}}
 	if err := rs.ValidateIDs([]string{"a"}); err != nil {

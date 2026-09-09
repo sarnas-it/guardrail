@@ -16,6 +16,60 @@ func writeRuleFile(t *testing.T, name, content string) string {
 	return dir
 }
 
+func TestLoadFSAcceptsDictionaryRule(t *testing.T) {
+	dir := writeRuleFile(t, "x.yaml", `
+rules:
+  - id: full_name_ru
+    category: pii
+    severity: warn
+    description: Russian full name
+    type: dictionary
+`)
+	rs, err := LoadFS(os.DirFS(dir))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	r, ok := rs.Get("full_name_ru")
+	if !ok {
+		t.Fatal("rule not loaded")
+	}
+	if r.Type != RuleTypeDictionary {
+		t.Fatalf("expected dictionary type, got %q", r.Type)
+	}
+	if r.Regex != nil {
+		t.Fatal("dictionary rule must not compile a regex")
+	}
+}
+
+func TestLoadFSRejectsRegexOnDictionaryRule(t *testing.T) {
+	dir := writeRuleFile(t, "x.yaml", `
+rules:
+  - id: bad
+    category: pii
+    severity: warn
+    description: bad
+    type: dictionary
+    regex: "abc"
+`)
+	if _, err := LoadFS(os.DirFS(dir)); err == nil {
+		t.Fatal("expected error for regex field on dictionary rule")
+	}
+}
+
+func TestLoadFSRejectsBadType(t *testing.T) {
+	dir := writeRuleFile(t, "x.yaml", `
+rules:
+  - id: bad
+    category: pii
+    severity: warn
+    description: bad
+    type: wizard
+`)
+	if _, err := LoadFS(os.DirFS(dir)); err == nil {
+		t.Fatal("expected error for unknown type")
+	}
+}
+
 func TestLoadFSRejectsBadSeverity(t *testing.T) {
 	dir := writeRuleFile(t, "x.yaml", `
 rules:
