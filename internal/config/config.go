@@ -36,11 +36,21 @@ type OutputConfig struct {
 	Reveal    bool   `yaml:"reveal"`
 }
 
+type NamesConfig struct {
+	MinMatches      int    `yaml:"min_matches"`
+	Window          int    `yaml:"window"`
+	SurnamesFile    string `yaml:"surnames_file"`
+	GivenNamesFile  string `yaml:"given_names_file"`
+	PatronymicsFile string `yaml:"patronymics_file"`
+	ExclusionsFile  string `yaml:"exclusions_file"`
+}
+
 type Config struct {
 	Severity map[string]string `yaml:"severity"`
 	Ignore   IgnoreConfig      `yaml:"ignore"`
 	Scan     ScanConfig        `yaml:"scan"`
 	Output   OutputConfig      `yaml:"output"`
+	Names    NamesConfig       `yaml:"names"`
 }
 
 func Default() *Config {
@@ -98,6 +108,12 @@ func validate(cfg *Config, rs *rules.RuleSet) (*Config, error) {
 				return nil, fmt.Errorf("ignore.matches.until %q must be a date in YYYY-MM-DD format", m.Until)
 			}
 		}
+	}
+	if cfg.Names.MinMatches != 0 && cfg.Names.MinMatches != 2 && cfg.Names.MinMatches != 3 {
+		return nil, fmt.Errorf("names.min_matches must be 2 or 3, got %d", cfg.Names.MinMatches)
+	}
+	if cfg.Names.Window != 0 && cfg.Names.Window < 2 {
+		return nil, fmt.Errorf("names.window must be >= 2, got %d", cfg.Names.Window)
 	}
 	return cfg, nil
 }
