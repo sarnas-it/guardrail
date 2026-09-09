@@ -38,6 +38,9 @@ func FullName(line string, set *names.Set, rule *rules.Rule) []Match {
 	for start := 0; start < len(toks); start++ {
 		var union names.Categories
 		named := 0
+		// Внутренний цикл намеренно доходит до края окна без break на первом
+		// кандидате: bestStart/bestEnd перезаписываются при каждом расширении,
+		// оставляя максимальный span для последующей обрезки к именным границам.
 		for end := start; end < len(toks) && end-start < window; end++ {
 			if toks[end].mask != 0 {
 				named++

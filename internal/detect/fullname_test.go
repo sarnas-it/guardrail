@@ -3,6 +3,7 @@ package detect
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/sarnas-it/guardrail/internal/names"
@@ -23,7 +24,7 @@ func writeDicts(t *testing.T, files map[string]string) string {
 func fullNameSet(t *testing.T, minMatches, window int) *names.Set {
 	t.Helper()
 	dir := writeDicts(t, map[string]string{
-		"surnames.txt":    "иванов\nпетров\nсидоров\nкаренин\n",
+		"surnames.txt":    "иванов\nпетров\nсидоров\nкаренин\nкаренина\n",
 		"given.txt":       "иван\nпётр\nмария\nанна\n",
 		"patronymics.txt": "иванович\nпетрович\nалексеевна\n",
 		"exclusions.txt":  "анна каренина\n",
@@ -92,9 +93,31 @@ func TestFullNameThresholdThree(t *testing.T) {
 func TestFullNameExclusion(t *testing.T) {
 	s := fullNameSet(t, 2, 4)
 	r := dictionaryRule(t)
-	// анна(имя) + каренин(фамилия) = 2 категории, но фраза в exclusions.
+	// анна(имя) + каренина(фамилия) = 2 категории: кандидат собирается,
+	// но фраза есть в exclusions и обязана быть отброшена.
 	if ms := FullName(`title = "Анна Каренина"`, s, r); len(ms) != 0 {
 		t.Fatalf("excluded phrase must not match, got %+v", ms)
+	}
+}
+
+func TestFullNameNotExcluded(t *testing.T) {
+	s := fullNameSet(t, 2, 4)
+	r := dictionaryRule(t)
+	// Тот же словарь, но фраза вне exclusions — зеркальная проверка того,
+	// что suppression в TestFullNameExclusion даёт именно IsExcluded,
+	// а не недобор категорий (каренина теперь в surnames.txt).
+	line := `title = "Иван Иванов"`
+	ms := FullName(line, s, r)
+	if len(ms) != 1 {
+		t.Fatalf("non-excluded phrase must match, got %d: %+v", len(ms), ms)
+	}
+	if ms[0].Value != "иван иванов" {
+		t.Fatalf("unexpected value %q", ms[0].Value)
+	}
+	// Контракт границ: span валиден и в точности покрывает фразу.
+	got := strings.ToLower(line[ms[0].Start:ms[0].End])
+	if got != ms[0].Value {
+		t.Fatalf("span [%d,%d) covers %q, want %q", ms[0].Start, ms[0].End, got, ms[0].Value)
 	}
 }
 
