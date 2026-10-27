@@ -5,12 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sarnas-it/guardrail/internal/config"
-	"github.com/sarnas-it/guardrail/internal/engine"
-	"github.com/sarnas-it/guardrail/internal/git"
-	"github.com/sarnas-it/guardrail/internal/names"
-	"github.com/sarnas-it/guardrail/internal/output"
-	"github.com/sarnas-it/guardrail/internal/rules"
+	"code.sarnas.ru/guardrail/internal/config"
+	"code.sarnas.ru/guardrail/internal/engine"
+	"code.sarnas.ru/guardrail/internal/git"
+	"code.sarnas.ru/guardrail/internal/names"
+	"code.sarnas.ru/guardrail/internal/output"
+	"code.sarnas.ru/guardrail/internal/rules"
 )
 
 // Run выполняет сканирование репозитория в repoDir.

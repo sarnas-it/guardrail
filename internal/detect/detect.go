@@ -3,8 +3,8 @@ package detect
 import (
 	"strings"
 
-	"github.com/sarnas-it/guardrail/internal/entropy"
-	"github.com/sarnas-it/guardrail/internal/rules"
+	"code.sarnas.ru/guardrail/internal/entropy"
+	"code.sarnas.ru/guardrail/internal/rules"
 )
 
 type Match struct {

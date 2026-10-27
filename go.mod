@@ -1,4 +1,4 @@
-module github.com/sarnas-it/guardrail
+module code.sarnas.ru/guardrail
 
 go 1.25.11
 

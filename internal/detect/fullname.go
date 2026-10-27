@@ -4,8 +4,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/sarnas-it/guardrail/internal/names"
-	"github.com/sarnas-it/guardrail/internal/rules"
+	"code.sarnas.ru/guardrail/internal/names"
+	"code.sarnas.ru/guardrail/internal/rules"
 )
 
 type token struct {

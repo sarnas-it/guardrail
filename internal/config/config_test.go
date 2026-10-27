@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/sarnas-it/guardrail/internal/rules"
+	"code.sarnas.ru/guardrail/internal/rules"
 )
 
 func rs(t *testing.T) *rules.RuleSet {

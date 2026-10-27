@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sarnas-it/guardrail/internal/config"
-	"github.com/sarnas-it/guardrail/internal/glob"
+	"code.sarnas.ru/guardrail/internal/config"
+	"code.sarnas.ru/guardrail/internal/glob"
 )
 
 var builtinIgnoredPaths = []string{
