@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/sarnas-it/guardrail/internal/engine"
-	"github.com/sarnas-it/guardrail/internal/mask"
-	"github.com/sarnas-it/guardrail/internal/rules"
+	"code.sarnas.ru/guardrail/internal/engine"
+	"code.sarnas.ru/guardrail/internal/mask"
+	"code.sarnas.ru/guardrail/internal/rules"
 )
 
 // WriteText печатает находки и возвращает (blockCount, warnCount).

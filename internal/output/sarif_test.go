@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sarnas-it/guardrail/internal/engine"
-	"github.com/sarnas-it/guardrail/internal/rules"
+	"code.sarnas.ru/guardrail/internal/engine"
+	"code.sarnas.ru/guardrail/internal/rules"
 )
 
 func TestWriteSARIFNoFindingsEmitsEmptyResults(t *testing.T) {

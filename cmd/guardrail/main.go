@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sarnas-it/guardrail/internal/app"
+	"code.sarnas.ru/guardrail/internal/app"
 )
 
 func main() {

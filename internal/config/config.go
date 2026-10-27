@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sarnas-it/guardrail/internal/rules"
+	"code.sarnas.ru/guardrail/internal/rules"
 	"gopkg.in/yaml.v3"
 )
 

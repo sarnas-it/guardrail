@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sarnas-it/guardrail/internal/names"
-	"github.com/sarnas-it/guardrail/internal/rules"
+	"code.sarnas.ru/guardrail/internal/names"
+	"code.sarnas.ru/guardrail/internal/rules"
 )
 
 func writeDicts(t *testing.T, files map[string]string) string {

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sarnas-it/guardrail/internal/config"
-	"github.com/sarnas-it/guardrail/internal/git"
-	"github.com/sarnas-it/guardrail/internal/names"
-	"github.com/sarnas-it/guardrail/internal/rules"
+	"code.sarnas.ru/guardrail/internal/config"
+	"code.sarnas.ru/guardrail/internal/git"
+	"code.sarnas.ru/guardrail/internal/names"
+	"code.sarnas.ru/guardrail/internal/rules"
 )
 
 func TestIsPathIgnored(t *testing.T) {

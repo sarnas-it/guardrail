@@ -4,8 +4,8 @@ import (
 	"math"
 	"testing"
 
-	"github.com/sarnas-it/guardrail/internal/entropy"
-	"github.com/sarnas-it/guardrail/internal/rules"
+	"code.sarnas.ru/guardrail/internal/entropy"
+	"code.sarnas.ru/guardrail/internal/rules"
 )
 
 func loadDefault(t *testing.T) *rules.RuleSet {

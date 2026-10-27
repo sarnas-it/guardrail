@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/sarnas-it/guardrail/internal/engine"
-	"github.com/sarnas-it/guardrail/internal/mask"
+	"code.sarnas.ru/guardrail/internal/engine"
+	"code.sarnas.ru/guardrail/internal/mask"
 )
 
 type jsonFinding struct {
